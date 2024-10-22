@@ -1,116 +1,53 @@
-import { useState } from 'react'
+import {  useState } from 'react'
 import './App.css'
-
-type Note = {
-  id: number;
-  title: string;
-  content: string;
-}
+import { Form } from './components/Form';
+import { Notes } from './components/Notes';
+import { Note } from './types/index'
+import { useFetchData } from './hooks/useFetchData'
+import { useHandleSubmit } from './hooks/useHandleSubmit';
+import { useHandleUpdateNote } from './hooks/useHandleUpdateNote';
+import { useHandleDeleteNote } from './hooks/useHandleDeleteNote';
 function App() {
-  const [notes, setNotes] = useState<Note[]>([
-    {id: 1, title: 'Note 1', content: 'Note 1 content'},
-    {id: 2, title: 'Note 2', content: 'Note 2 content'},
-    {id: 3, title: 'Note 3', content: 'Note 3 content'},  
-    {id: 4, title: 'Note 4', content: 'Note 4 content'},  
-  ])
-
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null)
-
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setNotes([ {id: notes.length + 1, title, content}, ...notes])
-    setTitle('')
-    setContent('')    
-  }
-
-  const handleNoteClick = (note:Note) => {
-      setSelectedNote(note)
-      setTitle(note.title)
-      setContent(note.content)
-  }
-
+  const [ title, setTitle ] = useState('')
+  const [ content, setContent ] = useState('')
+  const [ selectedNote, setSelectedNote ] = useState<Note | null>(null)
+  const { notes, setNotes } = useFetchData()
+  const { handleSubmit } = useHandleSubmit(notes, setNotes,title,content,setTitle,setContent)
   const handleCancelNote = () => {
     setSelectedNote(null)
     setTitle('')
     setContent('')  
   }
 
-  const handleUpdateNote = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (selectedNote) {
-      const updateNote = notes.map(
-        item => selectedNote.id === item.id 
-          ? {...selectedNote, title, content} 
-          : 
-          item)
-
-      setNotes(updateNote)
-      handleCancelNote()
-    }
-  }
-
-  const handleDeleteNote = (e: React.MouseEvent<HTMLButtonElement>, id: number) => {
-    e.stopPropagation()
-    const newNotes = notes.filter(item => item.id !== id)
-    setNotes(newNotes)
-    handleCancelNote()
+  const { handleUpdateNote } = useHandleUpdateNote(notes,selectedNote, setNotes, title, content,handleCancelNote)
+  const { handleDeleteNote } = useHandleDeleteNote(notes, setNotes, handleCancelNote) 
+  const handleNoteClick = (note:Note) => {
+      setSelectedNote(note)
+      setTitle(note.title)
+      setContent(note.content)
   }
 
   return (
-    <div className='app-container'>
-      <form 
-        className="note-form" action=""
-        onSubmit={
-          selectedNote ?
-            (e) => handleUpdateNote(e)
-            :
-            (e) => handleSubmit(e)
-        }
-      >
-        <input 
-          type="text" placeholder='title' required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <textarea 
-          name="" id="" rows={10} required
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        ></textarea>
-        {selectedNote? (
-          <div className='edit-buttons'>
-            <button type='submit'>Update Note</button>
-            <button className='cancel-button' onClick={() => handleCancelNote()}>Cancel</button>
-          </div>
-        ):
-          <button type='submit'>Add Note</button>
-        }
-      </form>
-      <div className='notes-grid'>
-        {notes.map(note => (
-          <div 
-            className="note-item" 
-            key={note.id}
-            onClick={() => handleNoteClick(note)}    
-          >
-            <div className="note-header">
-              <h3>{note.title}</h3>
-              <button onClick={ (e) => handleDeleteNote(e, note.id)}>X</button>
-            </div>
-            <div 
-              className="note-body" 
-              
-            >
-              <p>{note.content}</p>
-              <small>12/12/2022</small>
-            </div>
-          </div>
-        ))}
+    <>
+      <h1 className='title'>NOTES</h1>
+      <div className='app-container'>
+        <Form
+          selectedNote={selectedNote}
+          handleUpdateNote={handleUpdateNote}
+          handleSubmit={handleSubmit}
+          title={title}
+          setTitle={setTitle}
+          content={content}
+          setContent={setContent}
+          handleCancelNote={handleCancelNote}
+          />
+        <Notes
+          notes={notes}
+          handleNoteClick={handleNoteClick}
+          handleDeleteNote={handleDeleteNote}
+          />
       </div>
-    </div>
+  </>
   )
 }
 
