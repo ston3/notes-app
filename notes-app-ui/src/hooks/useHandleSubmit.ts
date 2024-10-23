@@ -9,11 +9,14 @@ export const useHandleSubmit = (
   title: string, 
   content: string, 
   setTitle: React.Dispatch<React.SetStateAction<string>>, 
-  setContent: React.Dispatch<React.SetStateAction<string>>) => {
+  setContent: React.Dispatch<React.SetStateAction<string>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     try{
+
+      setLoading(true)
       const createNoteRequest = await fetch(URL, {
         method: 'POST',
         headers: {
@@ -27,6 +30,7 @@ export const useHandleSubmit = (
 
       const response = await createNoteRequest.json()
       setNotes([response, ...notes])
+      setLoading(false)
     }catch(e){
       console.log(e)
     }

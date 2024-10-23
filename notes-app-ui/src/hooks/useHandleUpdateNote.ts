@@ -7,12 +7,14 @@ export const useHandleUpdateNote = (
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>, 
   title: string, 
   content: string, 
-  handleCancelNote: () => void
+  handleCancelNote: () => void,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   const handleUpdateNote = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if(selectedNote){
       try{
+        setLoading(true)
         const updateNoteRequest = await fetch(`${URL}/${selectedNote.id}`, {
           method: 'PUT',
           headers: {
@@ -31,7 +33,8 @@ export const useHandleUpdateNote = (
             : 
             item)
         
-        setNotes(updateNote)    
+        setNotes(updateNote)   
+        setLoading(false) 
   
       }catch(e){
         console.log(e)
